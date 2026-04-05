@@ -18,5 +18,5 @@ Puedes ver la gestión de tareas y seguimiento del proyecto en Jira:
 # 👥 Autores
 
 - Jerson Steven Mantilla Ramirez
-- Alejadnra Rodriguez Forero
+- Alejandra Rodriguez Forero
 - Santiago Galvis
