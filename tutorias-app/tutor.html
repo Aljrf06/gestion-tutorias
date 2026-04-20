@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Tutor</title>
+    <link rel="stylesheet" href="tutor.css">
+</head>
+<body>
+
+<div class="dashboard">
+
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-title">
+                <span class="icon-book">📚</span>
+                <div>
+                    <h1>Panel de Tutor</h1>
+                    <p>Bienvenido, <span id="nombreBienvenida">Cargando...</span></p>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+        </header>
+
+        <section class="actions-section">
+            <div class="section-title">
+                <h2>Mis Franjas Horarias</h2>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="mostrarForm('franjaForm')">+ Nueva Franja</button>
+                    <button class="btn-primary" onclick="mostrarForm('materiaForm')">+ Nueva Materia</button>
+                </div>
+            </div>
+
+        <form id="franjaForm" class="form-card" style="display:none;" onsubmit="event.preventDefault();">
+            <h3>Crear Franja Horaria</h3>
+            <div class="form-grid">
+                <input type="date" id="fecha">
+                <input type="time" id="hora_inicio">
+                <input type="time" id="hora_fin">
+                <input type="text" id="descripcion" placeholder="Descripción">
+                <select id="materia_id">
+                    <option value="">Seleccionar Materia</option>
+                </select>
+            </div>
+            <button type="button" class="btn-save" onclick="crearFranja()">Guardar</button>
+        </form>
+
+        <div id="listaFranjas" class="slots-grid">
+            </div>
+
+        <section class="reservations-section" style="margin-top: 40px;">
+            <div class="section-title">
+                <h2>Reservas de Estudiantes</h2>
+            </div>
+            
+            <div class="table-container" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <table id="tablaReservas" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 2px solid #eee;">
+                            <th style="padding: 12px;">Estudiante</th>
+                            <th style="padding: 12px;">Materia</th>
+                            <th style="padding: 12px;">Fecha y Hora</th>
+                            <th style="padding: 12px;">Estado</th>
+                            <th style="padding: 12px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoReservas">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: #666;">
+                                Buscando nuevas solicitudes...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="tutor.js"></script>
+
+            <div id="materiaForm" class="form-card" style="display:none;">
+                <h3>Crear Materia</h3>
+                <div class="form-grid">
+                    <input type="text" id="nombreMateria" placeholder="Nombre de la materia">
+                    <input type="text" id="descripcionMateria" placeholder="Descripción corta">
+                </div>
+                <button class="btn-save" onclick="crearMateria()">Guardar</button>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="tutor.js"></script>
+</body>
+</html>
+

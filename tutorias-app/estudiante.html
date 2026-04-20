@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Estudiante - UIS</title>
+    <link rel="stylesheet" href="tutor.css"> </head>
+<body>
+
+<div class="dashboard">
+    <main class="main-content">
+        <header class="header">
+            <div class="header-title">
+                <span class="icon-book">🎓</span>
+                <div>
+                    <h1>Portal de Estudiante</h1>
+                    <p>Bienvenido, <span id="nombreBienvenida">Cargando...</span></p>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+        </header>
+
+<section class="actions-section">
+            <div class="section-title">
+                <h2>Buscar Tutorías Disponibles</h2>
+            </div>
+            <div class="filter-bar" style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <input type="text" id="busquedaMateria" placeholder="¿Qué materia buscas?" style="flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                <button class="btn-primary" onclick="filtrarTutorias()">Buscar</button>
+            </div>
+        </section>
+
+        <div id="listaFranjasDisponibles" class="slots-grid">
+            </div>
+
+        <section class="reservations-section" style="margin-top: 40px;">
+            <div class="section-title">
+                <h2>Mis Solicitudes de Tutoría</h2>
+            </div>
+            <div class="table-container" style="background: white; padding: 20px; border-radius: 12px; shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 2px solid #eee;">
+                            <th>Materia</th>
+                            <th>Tutor</th>
+                            <th>Fecha/Hora</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="misReservas">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="estudiante.js"></script>
+</body>
+</html>
