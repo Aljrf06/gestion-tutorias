@@ -66,4 +66,8 @@ public class ReservaService {
         return reservaRepository.save(reserva);
     }
 
+    public List<Reserva> listarPorTutor(int tutorId) {
+        return reservaRepository.findByFranjaHoraria_Tutor_Id(tutorId);
+    }
+
 }

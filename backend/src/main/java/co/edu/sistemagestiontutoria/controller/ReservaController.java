@@ -32,7 +32,10 @@ public class ReservaController {
     public ResponseEntity<List<Reserva>> listarPorEstudiante(@PathVariable int estudianteId) {
         return ResponseEntity.ok(reservaService.listarPorEstudiante(estudianteId));
     }
-
+    @GetMapping("/tutor/{tutorId}")
+    public ResponseEntity<List<Reserva>> listarPorTutor(@PathVariable int tutorId) {
+        return ResponseEntity.ok(reservaService.listarPorTutor(tutorId));
+    }
     @PutMapping("/cancelar/{id}")
     public ResponseEntity<Reserva> cancelarReserva(@PathVariable int id,
                                                    @RequestParam String motivo) {

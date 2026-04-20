@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
     List<Reserva> findByEstudianteId(int estudianteId);
+
+    List<Reserva>findByFranjaHoraria_Tutor_Id(int tutorId);
 }
