@@ -18,6 +18,7 @@ window.onload = function() {
         console.log("Sesión iniciada. Estudiante ID: " + idGuardado);
         
         // Llamamos a tus funciones de carga
+        cargarMisReservas(idGuardado); // Carga las reservas del estudiante
         cargarTodasLasTutorias();
     } else {
         console.warn("No se encontró ID de usuario. Redirigiendo al login...");
@@ -103,13 +104,13 @@ async function solicitarReserva(franjaId) {
     const nuevaReserva = {
         estudiante: { id: parseInt(estudianteId) },
         franjaHoraria: { id: parseInt(franjaId) },
-        estado: "PENDIENTE", // El estado inicial según tu Enum
+        estado: "activa", // El estado inicial según tu Enum
         fechaReserva: new Date().toISOString() // Fecha actual en formato ISO
     };
 
     try {
         // 3. Petición POST al backend
-        const response = await fetch('http://localhost:8081/reservas/guardar', {
+        const response = await fetch('http://localhost:8081/reservas/crearReserva', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -130,5 +131,39 @@ async function solicitarReserva(franjaId) {
     } catch (error) {
         console.error("Error en la conexión:", error);
         alert("Hubo un problema de conexión con el servidor.");
+    }
+}
+
+async function cargarMisReservas(estudianteId) {
+    try {
+        const response = await fetch(`http://localhost:8081/reservas/estudiante/${estudianteId}`);
+        
+        if (!response.ok) {
+            throw new Error("Error al obtener reservas");
+        }
+
+        const reservas = await response.json();
+        console.log("Reservas:", reservas);
+const tabla = document.getElementById("misReservas");
+tabla.innerHTML = "";
+
+reservas.forEach(reserva => {
+    const fila = `
+        <tr>
+            <td>${reserva.franjaHoraria?.materia?.nombre || "N/A"}</td>
+            <td>${reserva.franjaHoraria?.tutor?.nombre || "N/A"}</td>
+            <td>
+                ${reserva.franjaHoraria?.fecha || ""} 
+                ${reserva.franjaHoraria?.horaInicio || ""} - 
+                ${reserva.franjaHoraria?.horaFin || ""}
+            </td>
+            <td>${reserva.estado}</td>
+        </tr>
+    `;
+    tabla.innerHTML += fila;
+});
+
+    } catch (error) {
+        console.error("Error cargando reservas:", error);
     }
 }

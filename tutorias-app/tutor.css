@@ -134,7 +134,9 @@ input, select {
 .btn-delete { background: #fff5f5; color: #c53030; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
 
 .table-container {
-    overflow-x: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 10px;
 }
 
 table th {
@@ -158,3 +160,47 @@ table td {
 .PENDIENTE { background: #fff3cd; color: #856404; }
 .CONFIRMADA { background: #d4edda; color: #155724; }
 .CANCELADA { background: #f8d7da; color: #721c24; }
+
+/* ===== ARREGLO TABLA CENTRADA Y LIMPIA ===== */
+/* Distribución equilibrada de columnas */
+table {
+    width: 100%;
+    table-layout: fixed; /* 🔥 clave */
+}
+
+th:nth-child(1), td:nth-child(1) { width: 20%; } /* Estudiante */
+th:nth-child(2), td:nth-child(2) { width: 20%; } /* Materia */
+th:nth-child(3), td:nth-child(3) { width: 30%; } /* Fecha */
+th:nth-child(4), td:nth-child(4) { width: 15%; } /* Estado */
+th:nth-child(5), td:nth-child(5) { width: 15%; } /* Acciones */
+
+thead th {
+    text-align: center;
+    padding: 14px;
+    border-bottom: 2px solid var(--border);
+}
+
+tbody td {
+    text-align: center;
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Materia alineada a la izquierda (mejor visual) */
+tbody td:nth-child(2) {
+    text-align: left;
+}
+
+/* Centrar botones perfectamente */
+td:last-child {
+    text-align: center;
+}
+
+/* Mejor separación visual */
+tbody tr {
+    transition: background 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #f9fafb;
+}

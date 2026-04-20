@@ -220,8 +220,65 @@ window.onload = function() {
         // Llamamos a tus funciones de carga
         cargarMaterias(); 
         cargarFranjas(idGuardado); // <-- Le enviamos el ID a la función
+        cargarReservasTutor(); // Carga las reservas del tutor
     } else {
         console.warn("No se encontró ID de usuario. Redirigiendo al login...");
         // window.location.href = "index.html";
     }
 };
+async function cargarReservasTutor() {
+    const tutorId = localStorage.getItem("usuarioId");
+
+    if (!tutorId) {
+        console.error("No hay tutor logueado");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8081/reservas/tutor/${tutorId}`);
+
+        if (!response.ok) {
+            throw new Error("Error al obtener reservas");
+        }
+
+        const reservas = await response.json();
+        console.log("Reservas:", reservas);
+
+        const tabla = document.getElementById("cuerpoReservas");
+        tabla.innerHTML = "";
+
+        if (reservas.length === 0) {
+            tabla.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center;">
+                        No hay reservas aún
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        reservas.forEach(reserva => {
+            const fila = `
+                <tr>
+                    <td>${reserva.estudiante?.nombre || "N/A"}</td>
+                    <td>${reserva.franjaHoraria?.materia?.nombre || "N/A"}</td>
+                    <td>
+                        ${reserva.franjaHoraria?.fecha || ""} 
+                        ${reserva.franjaHoraria?.horaInicio || ""} - 
+                        ${reserva.franjaHoraria?.horaFin || ""}
+                    </td>
+                    <td>${reserva.estado}</td>
+                    <td>
+
+                        <button onclick="cancelarReserva(${reserva.id})">Cancelar</button>
+                    </td>
+                </tr>
+            `;
+            tabla.innerHTML += fila;
+        });
+
+    } catch (error) {
+        console.error("Error cargando reservas:", error);
+    }
+}
