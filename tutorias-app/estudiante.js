@@ -1,50 +1,45 @@
+/**
+ * ARCHIVO: estudiante.js
+ * Descripción: Maneja la lógica del portal del estudiante, búsqueda y reservas.
+ */
+
 window.onload = function() {
-    // 1. Extraemos los dos datos que guardaste en el login
     const nombreGuardado = localStorage.getItem("nombre");
     const idGuardado = localStorage.getItem("usuarioId");
-
-    // 2. Buscamos el lugar en el HTML donde va el nombre
     const etiquetaNombre = document.getElementById("nombreBienvenida");
 
-    // 3. Verificamos el nombre para el saludo
     if (nombreGuardado) {
         etiquetaNombre.textContent = nombreGuardado;
     } else {
         etiquetaNombre.textContent = "Invitado";
     }
 
-    // 4. Verificamos el ID para cargar los datos de la base de datos
     if (idGuardado) {
         console.log("Sesión iniciada. Estudiante ID: " + idGuardado);
-        
-        // Llamamos a tus funciones de carga
-        cargarMisReservas(idGuardado); // Carga las reservas del estudiante
+        cargarMisReservas(idGuardado); 
         cargarTodasLasTutorias();
     } else {
         console.warn("No se encontró ID de usuario. Redirigiendo al login...");
-        // window.location.href = "index.html";
+        // window.location.href = "login.html";
     }
-    
 };
 
 function logout() {
-    console.log("Cerrando sesión...");
-    localStorage.clear(); // Limpia todo el localStorage (puedes optar por eliminar solo el nombre si prefieres)
-    // Redirige al archivo de login (ajusta el nombre si es necesario)
+    localStorage.clear();
     window.location.href = "login.html"; 
 }
 
+
+// 1. CARGAR TODAS LAS TUTORÍAS DISPONIBLES
 async function cargarTodasLasTutorias() {
     const contenedor = document.getElementById('listaFranjasDisponibles');
     
     try {
-        // Llamamos al endpoint general de franjas
         const response = await fetch('http://localhost:8081/franjas-horarias/listarFranjas');
         const franjas = await response.json();
 
         contenedor.innerHTML = '';
 
-        // Filtramos para mostrar solo lo disponible
         const disponibles = franjas.filter(f => f.estado === 'disponible');
 
         if (disponibles.length === 0) {
@@ -54,7 +49,7 @@ async function cargarTodasLasTutorias() {
 
         disponibles.forEach(franja => {
             const card = document.createElement('article');
-            card.className = 'slot-card'; // Usa el mismo estilo que el tutor para que se vea igual
+            card.className = 'slot-card';
 
             card.innerHTML = `
                 <div class="card-header">
@@ -68,60 +63,58 @@ async function cargarTodasLasTutorias() {
                     <p>📅 ${franja.fecha}</p>
                     <p>🕒 ${franja.horaInicio} - ${franja.horaFin}</p>
                     <p>📝 ${franja.descripcion || 'Sin descripción'}</p>
-                    </div>
-            <div class="card-actions" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: center;">
-            <button class="btn-save" 
-                    style="width: 100%; padding: 10px; cursor: pointer;" 
-                    onclick="solicitarReserva(${franja.id})">
-                Reservar Tutoría
-            </button>
-        </div>
+                </div>
+                <div class="card-actions" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: center;">
+                    <button class="btn-save" style="width: 100%; padding: 10px; cursor: pointer;" 
+                        onclick="solicitarReserva(${franja.id}, '${franja.fecha}', '${franja.horaInicio}', '${franja.horaFin}')">
+                        Reservar Tutoría
+                    </button>
+                </div>
             `;
             contenedor.appendChild(card);
         });
 
     } catch (error) {
-        console.error("Error al cargar tutorías:", error);
+        console.error("Error:", error);
         contenedor.innerHTML = '<p>Error al conectar con el servidor.</p>';
     }
 }
 
-async function solicitarReserva(franjaId) {
-    // 1. Obtener el ID del estudiante logueado
+// 2. SOLICITAR UNA RESERVA
+
+async function solicitarReserva(franjaId, fecha, inicio, fin) {
     const estudianteId = localStorage.getItem("usuarioId");
 
     if (!estudianteId) {
-        alert("Error: No se encontró la sesión del estudiante. Por favor, inicia sesión de nuevo.");
+        alert("Error: Sesión no encontrada.");
         return;
     }
 
-    // Confirmación visual para el usuario
-    if (!confirm("¿Estás seguro de que deseas reservar esta tutoría?")) {
-        return;
+    // --- AQUI APLICAMOS LA VALIDACIÓN ---
+    const hayCruce = await validarTraslapeEstudiante(estudianteId, fecha, inicio, fin);
+    if (hayCruce) {
+        alert("⚠️ No puedes reservar esta tutoría porque se cruza con otra reserva activa que ya tienes en ese horario.");
+        return; // Detiene la ejecución para que no se haga la reserva
     }
 
-    // 2. Construir el objeto Reserva (debe coincidir con tu entidad Java)
+    if (!confirm("¿Estás seguro de que deseas reservar esta tutoría?")) return;
+
     const nuevaReserva = {
         estudiante: { id: parseInt(estudianteId) },
         franjaHoraria: { id: parseInt(franjaId) },
-        estado: "activa", // El estado inicial según tu Enum
-        fechaReserva: new Date().toISOString() // Fecha actual en formato ISO
+        estado: "activa",
+        fechaReserva: new Date().toISOString()
     };
 
     try {
-        // 3. Petición POST al backend
         const response = await fetch('http://localhost:8081/reservas/crearReserva', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(nuevaReserva)
         });
 
         if (response.ok) {
-            alert("¡Solicitud enviada! El tutor deberá confirmar tu reserva.");
-            
-            // 4. Refrescar los datos para que el estudiante vea su nueva solicitud en la tabla
+            alert("¡Reserva realizada con éxito!");
             cargarTodasLasTutorias(); 
             cargarMisReservas(estudianteId); 
         } else {
@@ -129,41 +122,107 @@ async function solicitarReserva(franjaId) {
             alert("No se pudo realizar la reserva: " + (error.mensaje || "Error del servidor"));
         }
     } catch (error) {
-        console.error("Error en la conexión:", error);
-        alert("Hubo un problema de conexión con el servidor.");
+        console.error("Error:", error);
     }
 }
+
+// 3. CARGAR MIS RESERVAS (Tabla actualizada con botón cancelar)
 
 async function cargarMisReservas(estudianteId) {
     try {
         const response = await fetch(`http://localhost:8081/reservas/estudiante/${estudianteId}`);
-        
-        if (!response.ok) {
-            throw new Error("Error al obtener reservas");
-        }
+        if (!response.ok) throw new Error("Error al obtener reservas");
 
         const reservas = await response.json();
-        console.log("Reservas:", reservas);
-const tabla = document.getElementById("misReservas");
-tabla.innerHTML = "";
+        const tabla = document.getElementById("misReservas");
+        tabla.innerHTML = "";
 
-reservas.forEach(reserva => {
-    const fila = `
-        <tr>
-            <td>${reserva.franjaHoraria?.materia?.nombre || "N/A"}</td>
-            <td>${reserva.franjaHoraria?.tutor?.nombre || "N/A"}</td>
-            <td>
-                ${reserva.franjaHoraria?.fecha || ""} 
-                ${reserva.franjaHoraria?.horaInicio || ""} - 
-                ${reserva.franjaHoraria?.horaFin || ""}
-            </td>
-            <td>${reserva.estado}</td>
-        </tr>
-    `;
-    tabla.innerHTML += fila;
-});
+        if (reservas.length === 0) {
+            tabla.innerHTML = `<tr><td colspan="5" style="text-align:center;">No tienes solicitudes aún.</td></tr>`;
+            return;
+        }
+
+        reservas.forEach(reserva => {
+            const esActiva = reserva.estado === 'activa';
+            
+            const fila = `
+                <tr>
+                    <td>${reserva.franjaHoraria?.materia?.nombre || "N/A"}</td>
+                    <td style="text-align: center;">${reserva.franjaHoraria?.tutor?.nombre || "N/A"}</td>
+                    <td>
+                        ${reserva.franjaHoraria?.fecha || ""} <br>
+                        <small style="color: #718096;">${reserva.franjaHoraria?.horaInicio || ""} - ${reserva.franjaHoraria?.horaFin || ""}</small>
+                    </td>
+                    <td>
+                        <span style="background: ${esActiva ? '#d4edda' : '#f8d7da'}; color: ${esActiva ? '#155724' : '#721c24'}; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">
+                            ${reserva.estado.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>
+                        ${esActiva ? 
+                            `<button style="background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8em;" onclick="cancelarReservaEstudiante(${reserva.id})">Cancelar</button>` : 
+                            `<button style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #a0aec0; transition: 0.2s;" onmouseover="this.style.color='#e53e3e'" onmouseout="this.style.color='#a0aec0'" onclick="eliminarReservaHistorial(${reserva.id})" title="Eliminar del historial">🗑️</button>`}
+                    </td>
+                </tr>
+            `;
+            tabla.innerHTML += fila;
+        });
 
     } catch (error) {
         console.error("Error cargando reservas:", error);
+    }
+}
+
+// 4. CANCELAR RESERVA DESDE EL ESTUDIANTE
+async function cancelarReservaEstudiante(reservaId) {
+    const motivo = prompt("¿Por qué deseas cancelar tu tutoría?");
+    if (motivo === null) return; // Si el estudiante cierra el cuadro
+
+    try {
+        const url = `http://localhost:8081/reservas/cancelar/${reservaId}?motivo=${encodeURIComponent(motivo || "Cancelada por el estudiante")}`;
+        
+        const response = await fetch(url, { method: 'PUT' });
+
+        if (response.ok) {
+            alert("Tutoría cancelada. La franja volverá a estar disponible para otros estudiantes.");
+            
+            // Sincronización: recargamos ambas listas
+            const estudianteId = localStorage.getItem("usuarioId");
+            cargarMisReservas(estudianteId); 
+            cargarTodasLasTutorias(); 
+        } else {
+            const error = await response.json();
+            alert("Error al cancelar: " + (error.mensaje || "Error desconocido"));
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("No se pudo conectar con el servidor.");
+    }
+}
+
+async function validarTraslapeEstudiante(estudianteId, nuevaFecha, nuevaInicio, nuevaFin) {
+    try {
+        const response = await fetch(`http://localhost:8081/reservas/estudiante/${estudianteId}`);
+        if (!response.ok) return false;
+
+        const reservas = await response.json();
+
+        // Verificamos si alguna reserva ACTIVA choca con el nuevo horario
+        return reservas.some(reserva => {
+            // Solo nos interesan las reservas que no estén canceladas
+            if (reserva.estado !== 'activa') return false;
+
+            const franja = reserva.franjaHoraria;
+            if (!franja) return false;
+
+            if (franja.fecha === nuevaFecha) {
+                // (Inicio Nuevo < Fin Existente) Y (Fin Nuevo > Inicio Existente)
+                return (nuevaInicio < franja.horaFin && nuevaFin > franja.horaInicio);
+            }
+            return false;
+        });
+    } catch (error) {
+        console.error("Error al validar traslapes del estudiante:", error);
+        return false;
     }
 }
