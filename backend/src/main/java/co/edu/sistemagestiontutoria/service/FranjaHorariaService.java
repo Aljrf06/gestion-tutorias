@@ -4,9 +4,11 @@ import co.edu.sistemagestiontutoria.excepcion.ApiExcepcion;
 import co.edu.sistemagestiontutoria.model.*;
 import co.edu.sistemagestiontutoria.repository.FranjaHorariaRepository;
 import co.edu.sistemagestiontutoria.repository.MateriaRepository;
+import co.edu.sistemagestiontutoria.repository.ReservaRepository;
 import co.edu.sistemagestiontutoria.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +20,8 @@ public class FranjaHorariaService {
     private MateriaRepository materiaRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private ReservaRepository reservaRepository;
 
     public FranjaHoraria crearFranja(FranjaHoraria franja) {
         Materia materia = materiaRepository.findById(franja.getMateria().getId())
@@ -59,10 +63,11 @@ public class FranjaHorariaService {
         franja.setId(id);
         return franjaHorariaRepository.save(franja);
     }
-
+    @Transactional
     public void eliminarFranja(int id) {
         if (!franjaHorariaRepository.existsById(id))
             throw new ApiExcepcion("Franja horaria no encontrada", 404);
+        reservaRepository.deleteByFranjaHorariaId(id);
         franjaHorariaRepository.deleteById(id);
     }
 }
