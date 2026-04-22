@@ -5,7 +5,7 @@ eliminando la coordinación manual y desorganizada que genera conflictos de hora
 
 # 🛠️ Tecnologías Utilizadas
 
-- Angular
+- CSS,HTML
 - Spring Boot
 - MySQL
 
