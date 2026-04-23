@@ -15,6 +15,9 @@ Puedes ver la gestión de tareas y seguimiento del proyecto en Jira:
 
 [Jira del proyecto](https://mantillajerson2.atlassian.net)
 
+# 📉 Base de datos 
+<img width="1064" height="731" alt="image" src="https://github.com/user-attachments/assets/f9f37606-de92-415e-95dc-c230d6dab676" />
+
 # 👥 Autores
 
 - Jerson Steven Mantilla Ramirez
