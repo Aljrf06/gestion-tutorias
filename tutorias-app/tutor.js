@@ -3,17 +3,19 @@
  * Descripción: Maneja la lógica del panel de tutor, formularios y navegación.
  */
 
+function getHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("token")
+    };
+}
 // 1. GESTIÓN DE FORMULARIOS (Mostrar/Ocultar)
 function mostrarForm(id) {
-    // Primero ocultamos todos los formularios para que no se encimen
     const formularios = ['franjaForm', 'materiaForm'];
-    
     formularios.forEach(formId => {
         const f = document.getElementById(formId);
         if (f) f.style.display = 'none';
     });
-
-    // Mostramos el que el usuario solicitó
     const formularioSeleccionado = document.getElementById(id);
     if (formularioSeleccionado) {
         formularioSeleccionado.style.display = 'block';
@@ -43,15 +45,12 @@ async function crearMateria() {
         return;
     }
 
-    const nuevaMateria = {
-        nombre: nombre,
-        descripcion: descripcion
-    };
+    const nuevaMateria = { nombre: nombre, descripcion: descripcion };
 
     try {
         const response = await fetch('http://localhost:8081/materias/registrar', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify(nuevaMateria)
         });
         if (response.ok){
@@ -73,21 +72,19 @@ async function crearMateria() {
 // 4. LISTAR MATERIAS EN EL SELECT
 async function cargarMaterias() {
     const selectMateria = document.getElementById('materia_id');
-    
     try {
-        const response = await fetch('http://localhost:8081/materias/listarMaterias');
+        const response = await fetch('http://localhost:8081/materias/listarMaterias', {
+            headers: getHeaders()
+        });
         if (!response.ok) throw new Error("Error al obtener materias");
-
         const materias = await response.json();
         selectMateria.innerHTML = '<option value="">Seleccionar Materia</option>';
-
         materias.forEach(materia => {
             const option = document.createElement('option');
             option.value = materia.id;
             option.textContent = materia.nombre;
             selectMateria.appendChild(option);
         });
-
     } catch (error) {
         console.error("Error al poblar el select de materias:", error);
     }
@@ -96,27 +93,23 @@ async function cargarMaterias() {
 // 5. CARGAR MATERIAS CON OPCIÓN DE ELIMINAR
 async function cargarMateriasConEliminar() {
     let contenedor = document.getElementById('listaMaterias');
-    
-    // Si no existe el contenedor en tu HTML, lo creamos dinámicamente dentro de materiaForm
     if (!contenedor) {
         contenedor = document.createElement('div');
         contenedor.id = 'listaMaterias';
         contenedor.style.marginTop = '20px';
         document.getElementById('materiaForm').appendChild(contenedor);
     }
-
     try {
-        const response = await fetch('http://localhost:8081/materias/listarMaterias');
+        const response = await fetch('http://localhost:8081/materias/listarMaterias', {
+            headers: getHeaders()
+        });
         if (!response.ok) throw new Error("Error al obtener materias");
-
         const materias = await response.json();
         contenedor.innerHTML = '<h4>Materias Registradas</h4>';
-
         if (materias.length === 0) {
             contenedor.innerHTML += '<p style="color: gray;">No hay materias registradas.</p>';
             return;
         }
-
         materias.forEach(materia => {
             const fila = document.createElement('div');
             fila.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;';
@@ -126,7 +119,6 @@ async function cargarMateriasConEliminar() {
             `;
             contenedor.appendChild(fila);
         });
-
     } catch (error) {
         console.error("Error al cargar materias:", error);
         contenedor.innerHTML += '<p>Error al conectar con el servidor.</p>';
@@ -136,12 +128,11 @@ async function cargarMateriasConEliminar() {
 // 6. ELIMINAR MATERIA
 async function eliminarMateria(materiaId) {
     if (!confirm("¿Seguro que deseas eliminar esta materia?")) return;
-
     try {
         const response = await fetch(`http://localhost:8081/materias/${materiaId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getHeaders()
         });
-
         if (response.ok) {
             alert("Materia eliminada correctamente.");
             cargarMaterias();              
@@ -156,21 +147,17 @@ async function eliminarMateria(materiaId) {
     }
 }
 
-// --- NUEVA FUNCIÓN: VALIDAR TRASLAPE DE HORARIOS ---
+// --- VALIDAR TRASLAPE DE HORARIOS ---
 async function validarTraslape(tutorId, nuevaFecha, nuevaInicio, nuevaFin, idOmitir = null) {
     try {
-        const response = await fetch(`http://localhost:8081/franjas-horarias/tutor/${tutorId}`);
+        const response = await fetch(`http://localhost:8081/franjas-horarias/tutor/${tutorId}`, {
+            headers: getHeaders()
+        });
         if (!response.ok) return false;
-        
         const franjas = await response.json();
-        
         return franjas.some(franja => {
-            // Ignoramos la franja actual si estamos editando
             if (idOmitir && franja.id === idOmitir) return false;
-            
-            // Comparamos horas si las fechas son iguales
             if (franja.fecha === nuevaFecha) {
-                // Hay traslape si el nuevo inicio es menor que el fin existente Y el nuevo fin es mayor que el inicio existente
                 return (nuevaInicio < franja.horaFin && nuevaFin > franja.horaInicio);
             }
             return false;
@@ -184,7 +171,6 @@ async function validarTraslape(tutorId, nuevaFecha, nuevaInicio, nuevaFin, idOmi
 // 7. CREAR FRANJA HORARIA
 async function crearFranja() {
     const tutorId = localStorage.getItem("usuarioId");
-    
     const fecha = document.getElementById('fecha').value;
     const inicio = document.getElementById('hora_inicio').value;
     const fin = document.getElementById('hora_fin').value;
@@ -196,7 +182,6 @@ async function crearFranja() {
         return;
     }
 
-    // Validación estricta de horario
     const hayCruce = await validarTraslape(tutorId, fecha, inicio, fin);
     if (hayCruce) {
         alert("⚠️ Error: El horario seleccionado se cruza con otra franja que ya tienes registrada.");
@@ -204,10 +189,7 @@ async function crearFranja() {
     }
 
     const nuevaFranja = {
-        fecha: fecha,
-        horaInicio: inicio,
-        horaFin: fin,
-        descripcion: desc,
+        fecha: fecha, horaInicio: inicio, horaFin: fin, descripcion: desc,
         estado: "disponible", 
         tutor: { id: parseInt(tutorId) },
         materia: { id: parseInt(materiaId) }
@@ -216,10 +198,9 @@ async function crearFranja() {
     try {
         const response = await fetch('http://localhost:8081/franjas-horarias/crearFranja', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(), 
             body: JSON.stringify(nuevaFranja)
         });
-
         if (response.ok) {
             alert("¡Franja guardada exitosamente!");
             document.getElementById('franjaForm').reset();
@@ -239,26 +220,21 @@ async function crearFranja() {
 // 8. CARGAR FRANJAS
 async function cargarFranjas(tutorId) {
     const contenedor = document.getElementById('listaFranjas');
-    
     try {
-        const response = await fetch(`http://localhost:8081/franjas-horarias/tutor/${tutorId}`);
+        const response = await fetch(`http://localhost:8081/franjas-horarias/tutor/${tutorId}`, {
+            headers: getHeaders()
+        });
         if (!response.ok) throw new Error("No se pudieron cargar las franjas");
-
         const franjas = await response.json();
         contenedor.innerHTML = '';
-
         if (franjas.length === 0) {
             contenedor.innerHTML = '<p>No tienes franjas programadas aún.</p>';
             return;
         }
-
         franjas.forEach(franja => {
             const card = document.createElement('article');
             card.className = 'slot-card';
-            
-            // Verificamos si está disponible para mostrar u ocultar botones
             const esDisponible = (franja.estado === 'disponible');
-            
             card.innerHTML = `
                 <div class="card-header">
                     <strong>${franja.materia.nombre}</strong>
@@ -284,7 +260,6 @@ async function cargarFranjas(tutorId) {
             `;
             contenedor.appendChild(card);
         });
-
     } catch (error) {
         console.error("Error:", error);
         contenedor.innerHTML = '<p>Error al conectar con el servidor.</p>';
@@ -294,12 +269,11 @@ async function cargarFranjas(tutorId) {
 // 9. ELIMINAR FRANJA
 async function eliminarFranja(franjaId) {
     if (!confirm("¿Estás seguro de que deseas eliminar esta franja horaria?")) return;
-
     try {
         const response = await fetch(`http://localhost:8081/franjas-horarias/${franjaId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getHeaders()
         });
-
         if (response.ok) {
             alert("Franja eliminada correctamente.");
             const tutorId = localStorage.getItem("usuarioId");
@@ -318,29 +292,24 @@ async function eliminarFranja(franjaId) {
 // 10. ABRIR EDITOR DE FRANJA
 async function abrirEditor(franjaId) {
     try {
-        const response = await fetch(`http://localhost:8081/franjas-horarias/${franjaId}`);
+        const response = await fetch(`http://localhost:8081/franjas-horarias/${franjaId}`, {
+            headers: getHeaders()
+        });
         if (!response.ok) throw new Error("No se pudo obtener la franja");
-
         const franja = await response.json();
-
         if (franja.estado !== 'disponible') {
             alert("Esta franja ya no está disponible para edición.");
             return;
         }
-
         document.getElementById('fecha').value = franja.fecha;
         document.getElementById('hora_inicio').value = franja.horaInicio;
         document.getElementById('hora_fin').value = franja.horaFin;
         document.getElementById('descripcion').value = franja.descripcion || '';
         document.getElementById('materia_id').value = franja.materia.id;
-
         mostrarForm('franjaForm');
-
-        // Cambiamos el botón "Guardar"
         const btnGuardar = document.querySelector('#franjaForm .btn-save');
         btnGuardar.textContent = 'Actualizar';
         btnGuardar.onclick = () => actualizarFranja(franjaId);
-
     } catch (error) {
         console.error("Error al cargar la franja:", error);
         alert("No se pudo cargar la franja para editar.");
@@ -350,7 +319,6 @@ async function abrirEditor(franjaId) {
 // 11. ACTUALIZAR FRANJA
 async function actualizarFranja(franjaId) {
     const tutorId = localStorage.getItem("usuarioId");
-
     const fecha = document.getElementById('fecha').value;
     const inicio = document.getElementById('hora_inicio').value;
     const fin = document.getElementById('hora_fin').value;
@@ -362,7 +330,6 @@ async function actualizarFranja(franjaId) {
         return;
     }
 
-    // Validación estricta de horario omitiendo la franja que se está editando
     const hayCruce = await validarTraslape(tutorId, fecha, inicio, fin, franjaId);
     if (hayCruce) {
         alert("⚠️ Error: El horario modificado se cruza con otra de tus tutorías.");
@@ -370,10 +337,7 @@ async function actualizarFranja(franjaId) {
     }
 
     const franjaActualizada = {
-        fecha: fecha,
-        horaInicio: inicio,
-        horaFin: fin,
-        descripcion: desc,
+        fecha: fecha, horaInicio: inicio, horaFin: fin, descripcion: desc,
         estado: "disponible",
         tutor: { id: parseInt(tutorId) },
         materia: { id: parseInt(materiaId) }
@@ -382,18 +346,14 @@ async function actualizarFranja(franjaId) {
     try {
         const response = await fetch(`http://localhost:8081/franjas-horarias/${franjaId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify(franjaActualizada)
         });
-
         if (response.ok) {
             alert("¡Franja actualizada correctamente!");
-
-            // Restauramos el botón a su estado original
             const btnGuardar = document.querySelector('#franjaForm .btn-save');
             btnGuardar.textContent = 'Guardar';
             btnGuardar.onclick = crearFranja;
-
             document.getElementById('franjaForm').reset();
             document.getElementById('franjaForm').style.display = 'none';
             cargarFranjas(tutorId);
@@ -413,13 +373,11 @@ window.onload = function() {
     const nombreGuardado = localStorage.getItem("nombre");
     const idGuardado = localStorage.getItem("usuarioId");
     const etiquetaNombre = document.getElementById("nombreBienvenida");
-
     if (nombreGuardado) {
         etiquetaNombre.textContent = nombreGuardado;
     } else {
         etiquetaNombre.textContent = "Invitado";
     }
-
     if (idGuardado) {
         console.log("Sesión iniciada. Tutor ID: " + idGuardado);
         cargarMaterias(); 
@@ -431,26 +389,22 @@ window.onload = function() {
     }
 };
 
-
-
 // 13. CARGAR RESERVAS DEL TUTOR
-
 async function cargarReservasTutor() {
     const tutorId = localStorage.getItem("usuarioId");
     try {
-        const response = await fetch(`http://localhost:8081/reservas/tutor/${tutorId}`);
+        const response = await fetch(`http://localhost:8081/reservas/tutor/${tutorId}`, {
+            headers: getHeaders()
+        });
         const reservas = await response.json();
         const tabla = document.getElementById("cuerpoReservas");
         tabla.innerHTML = "";
-        
         if (reservas.length === 0) {
             tabla.innerHTML = `<tr><td colspan="5" style="text-align:center;">No hay reservas aún</td></tr>`;
             return;
         }
-
         reservas.forEach(reserva => {
             const esActiva = reserva.estado === 'activa';
-            
             const fila = `
                 <tr>
                     <td>${reserva.estudiante?.nombre || "N/A"}</td>
@@ -475,27 +429,21 @@ async function cargarReservasTutor() {
     } catch (error) { console.error(error); }
 }
 
-
-// 14. CANCELAR RESERVA (NUEVA FUNCIÓN)
+// 14. CANCELAR RESERVA
 async function cancelarReserva(reservaId) {
     const motivo = prompt("Por favor, ingresa el motivo de la cancelación:");
-    if (motivo === null) return; // Si el usuario presiona "Cancelar" en el prompt
-
+    if (motivo === null) return;
     try {
-        // El backend espera un PUT a /reservas/cancelar/{id}?motivo=...
         const url = `http://localhost:8081/reservas/cancelar/${reservaId}?motivo=${encodeURIComponent(motivo || "Cancelada por el tutor")}`;
-        
         const response = await fetch(url, {
-            method: 'PUT'
+            method: 'PUT',
+            headers: getHeaders()
         });
-
         if (response.ok) {
             alert("Tutoría cancelada exitosamente. La franja horaria ahora está libre.");
-            
-            // Recargamos los datos para ver los cambios reflejados
             const tutorId = localStorage.getItem("usuarioId");
-            cargarFranjas(tutorId);       // Para que la franja vuelva a aparecer como "Disponible" y con botones
-            cargarReservasTutor();        // Para que la reserva aparezca como "CANCELADA"
+            cargarFranjas(tutorId);
+            cargarReservasTutor();
         } else {
             const error = await response.json();
             alert("No se pudo cancelar: " + (error.mensaje || "Error desconocido"));

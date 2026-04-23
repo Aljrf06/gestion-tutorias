@@ -2,6 +2,12 @@
  * ARCHIVO: estudiante.js
  * Descripción: Maneja la lógica del portal del estudiante, búsqueda y reservas.
  */
+function getHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("token")
+    };
+}
 
 window.onload = function() {
     const nombreGuardado = localStorage.getItem("nombre");
@@ -29,36 +35,27 @@ function logout() {
     window.location.href = "login.html"; 
 }
 
-
 // 1. CARGAR TODAS LAS TUTORÍAS DISPONIBLES
-
 async function cargarTodasLasTutorias() {
     const contenedor = document.getElementById('listaFranjasDisponibles');
     
-    // Capturar los valores de los filtros y pasarlos a minúsculas para que la búsqueda no sea sensible a mayúsculas
     const txtMateria = document.getElementById('filtroMateria').value.toLowerCase().trim();
     const txtTutor = document.getElementById('filtroTutor').value.toLowerCase().trim();
     const txtFecha = document.getElementById('filtroFecha').value;
 
     try {
-        const response = await fetch('http://localhost:8081/franjas-horarias/listarFranjas');
+        const response = await fetch('http://localhost:8081/franjas-horarias/listarFranjas', {
+            headers: getHeaders()
+        });
         const franjas = await response.json();
 
         contenedor.innerHTML = '';
 
-        // Filtrar franjas: 
-        // 1. Que estén 'disponible'
-        // 2. Que coincidan con la Materia (si se escribió algo)
-        // 3. Que coincidan con el Tutor (si se escribió algo)
-        // 4. Que coincidan con la Fecha (si se seleccionó una)
         const disponibles = franjas.filter(f => {
             const esDisponible = f.estado === 'disponible';
-            
-            // Si el texto de búsqueda está vacío (incluye ""), la condición devuelve true automáticamente.
             const coincideMateria = f.materia.nombre.toLowerCase().includes(txtMateria);
             const coincideTutor = f.tutor.nombre.toLowerCase().includes(txtTutor);
             const coincideFecha = txtFecha === "" || f.fecha === txtFecha;
-
             return esDisponible && coincideMateria && coincideTutor && coincideFecha;
         });
 
@@ -70,7 +67,6 @@ async function cargarTodasLasTutorias() {
         disponibles.forEach(franja => {
             const card = document.createElement('article');
             card.className = 'slot-card';
-
             card.innerHTML = `
                 <div class="card-header">
                     <strong>${franja.materia.nombre}</strong>
@@ -109,7 +105,6 @@ function limpiarFiltros() {
 }
 
 // 2. SOLICITAR UNA RESERVA
-
 async function solicitarReserva(franjaId, fecha, inicio, fin) {
     const estudianteId = localStorage.getItem("usuarioId");
 
@@ -118,11 +113,10 @@ async function solicitarReserva(franjaId, fecha, inicio, fin) {
         return;
     }
 
-    // --- AQUI APLICAMOS LA VALIDACIÓN ---
     const hayCruce = await validarTraslapeEstudiante(estudianteId, fecha, inicio, fin);
     if (hayCruce) {
         alert("⚠️ No puedes reservar esta tutoría porque se cruza con otra reserva activa que ya tienes en ese horario.");
-        return; // Detiene la ejecución para que no se haga la reserva
+        return;
     }
 
     if (!confirm("¿Estás seguro de que deseas reservar esta tutoría?")) return;
@@ -137,10 +131,9 @@ async function solicitarReserva(franjaId, fecha, inicio, fin) {
     try {
         const response = await fetch('http://localhost:8081/reservas/crearReserva', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify(nuevaReserva)
         });
-
         if (response.ok) {
             alert("¡Reserva realizada con éxito!");
             cargarTodasLasTutorias(); 
@@ -154,11 +147,12 @@ async function solicitarReserva(franjaId, fecha, inicio, fin) {
     }
 }
 
-// 3. CARGAR MIS RESERVAS (Tabla actualizada con botón cancelar)
-
+// 3. CARGAR MIS RESERVAS
 async function cargarMisReservas(estudianteId) {
     try {
-        const response = await fetch(`http://localhost:8081/reservas/estudiante/${estudianteId}`);
+        const response = await fetch(`http://localhost:8081/reservas/estudiante/${estudianteId}`, {
+            headers: getHeaders()
+        });
         if (!response.ok) throw new Error("Error al obtener reservas");
 
         const reservas = await response.json();
@@ -172,7 +166,6 @@ async function cargarMisReservas(estudianteId) {
 
         reservas.forEach(reserva => {
             const esActiva = reserva.estado === 'activa';
-            
             const fila = `
                 <tr>
                     <td>${reserva.franjaHoraria?.materia?.nombre || "N/A"}</td>
@@ -204,17 +197,16 @@ async function cargarMisReservas(estudianteId) {
 // 4. CANCELAR RESERVA DESDE EL ESTUDIANTE
 async function cancelarReservaEstudiante(reservaId) {
     const motivo = prompt("¿Por qué deseas cancelar tu tutoría?");
-    if (motivo === null) return; // Si el estudiante cierra el cuadro
+    if (motivo === null) return;
 
     try {
         const url = `http://localhost:8081/reservas/cancelar/${reservaId}?motivo=${encodeURIComponent(motivo || "Cancelada por el estudiante")}`;
-        
-        const response = await fetch(url, { method: 'PUT' });
-
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: getHeaders()
+        });
         if (response.ok) {
             alert("Tutoría cancelada. La franja volverá a estar disponible para otros estudiantes.");
-            
-            // Sincronización: recargamos ambas listas
             const estudianteId = localStorage.getItem("usuarioId");
             cargarMisReservas(estudianteId); 
             cargarTodasLasTutorias(); 
@@ -230,21 +222,18 @@ async function cancelarReservaEstudiante(reservaId) {
 
 async function validarTraslapeEstudiante(estudianteId, nuevaFecha, nuevaInicio, nuevaFin) {
     try {
-        const response = await fetch(`http://localhost:8081/reservas/estudiante/${estudianteId}`);
+        const response = await fetch(`http://localhost:8081/reservas/estudiante/${estudianteId}`, {
+            headers: getHeaders()
+        });
         if (!response.ok) return false;
 
         const reservas = await response.json();
 
-        // Verificamos si alguna reserva ACTIVA choca con el nuevo horario
         return reservas.some(reserva => {
-            // Solo nos interesan las reservas que no estén canceladas
             if (reserva.estado !== 'activa') return false;
-
             const franja = reserva.franjaHoraria;
             if (!franja) return false;
-
             if (franja.fecha === nuevaFecha) {
-                // (Inicio Nuevo < Fin Existente) Y (Fin Nuevo > Inicio Existente)
                 return (nuevaInicio < franja.horaFin && nuevaFin > franja.horaInicio);
             }
             return false;

@@ -1,3 +1,4 @@
+
 document.getElementById("loginForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
@@ -26,6 +27,7 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
                 alert("Bienvenido " + response.nombre);
                 localStorage.setItem("nombre", response.nombre);
                 localStorage.setItem("usuarioId", response.id); // Guarda el ID del usuario
+                localStorage.setItem("token", response.token);
                 if (response.tipo === "tutor") {
                     window.location.href = "tutor.html";
                 }
