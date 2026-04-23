@@ -31,19 +31,39 @@ function logout() {
 
 
 // 1. CARGAR TODAS LAS TUTORÍAS DISPONIBLES
+
 async function cargarTodasLasTutorias() {
     const contenedor = document.getElementById('listaFranjasDisponibles');
     
+    // Capturar los valores de los filtros y pasarlos a minúsculas para que la búsqueda no sea sensible a mayúsculas
+    const txtMateria = document.getElementById('filtroMateria').value.toLowerCase().trim();
+    const txtTutor = document.getElementById('filtroTutor').value.toLowerCase().trim();
+    const txtFecha = document.getElementById('filtroFecha').value;
+
     try {
         const response = await fetch('http://localhost:8081/franjas-horarias/listarFranjas');
         const franjas = await response.json();
 
         contenedor.innerHTML = '';
 
-        const disponibles = franjas.filter(f => f.estado === 'disponible');
+        // Filtrar franjas: 
+        // 1. Que estén 'disponible'
+        // 2. Que coincidan con la Materia (si se escribió algo)
+        // 3. Que coincidan con el Tutor (si se escribió algo)
+        // 4. Que coincidan con la Fecha (si se seleccionó una)
+        const disponibles = franjas.filter(f => {
+            const esDisponible = f.estado === 'disponible';
+            
+            // Si el texto de búsqueda está vacío (incluye ""), la condición devuelve true automáticamente.
+            const coincideMateria = f.materia.nombre.toLowerCase().includes(txtMateria);
+            const coincideTutor = f.tutor.nombre.toLowerCase().includes(txtTutor);
+            const coincideFecha = txtFecha === "" || f.fecha === txtFecha;
+
+            return esDisponible && coincideMateria && coincideTutor && coincideFecha;
+        });
 
         if (disponibles.length === 0) {
-            contenedor.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 20px;">No hay tutorías disponibles en este momento.</p>';
+            contenedor.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 20px; background: white; border-radius: 8px;">No se encontraron tutorías con esos filtros.</p>';
             return;
         }
 
@@ -78,6 +98,14 @@ async function cargarTodasLasTutorias() {
         console.error("Error:", error);
         contenedor.innerHTML = '<p>Error al conectar con el servidor.</p>';
     }
+}
+
+// Función para limpiar los filtros y recargar todas las tutorías disponibles
+function limpiarFiltros() {
+    document.getElementById('filtroMateria').value = '';
+    document.getElementById('filtroTutor').value = '';
+    document.getElementById('filtroFecha').value = '';
+    cargarTodasLasTutorias();
 }
 
 // 2. SOLICITAR UNA RESERVA

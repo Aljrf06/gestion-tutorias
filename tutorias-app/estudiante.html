@@ -21,14 +21,32 @@
         </header>
 
 <section class="actions-section">
-            <div class="section-title">
-                <h2>Buscar tutorías disponibles</h2>
-            </div>
-            <div class="filter-bar" style="margin-bottom: 20px; display: flex; gap: 10px;">
-                <input type="text" id="busquedaMateria" placeholder="¿Qué materia buscas?" style="flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                <button class="btn-primary" onclick="filtrarTutorias()">Buscar</button>
-            </div>
-        </section>
+    <div class="section-title">
+        <h2>Buscar tutorías disponibles</h2>
+    </div>
+    
+    <div class="filter-bar" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; background: white; padding: 15px; border-radius: 12px; border: 1px solid #ddd;">
+        
+        <div style="flex-grow: 1; min-width: 150px;">
+            <label for="filtroMateria" style="display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.9em;">Materia:</label>
+            <input type="text" id="filtroMateria" placeholder="Ej: Cálculo" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box;">
+        </div>
+
+        <div style="flex-grow: 1; min-width: 150px;">
+            <label for="filtroTutor" style="display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.9em;">Tutor:</label>
+            <input type="text" id="filtroTutor" placeholder="Ej: Juan" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box;">
+        </div>
+
+        <div style="flex-grow: 1; min-width: 150px;">
+            <label for="filtroFecha" style="display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.9em;">Fecha:</label>
+            <input type="date" id="filtroFecha" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box;">
+        </div>
+
+        <button class="btn-primary" onclick="cargarTodasLasTutorias()" style="height: 42px; padding: 0 25px;">Buscar</button>
+        
+        <button style="height: 42px; padding: 0 15px; background: #eee; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; color: #555;" onclick="limpiarFiltros()">Limpiar</button>
+    </div>
+</section>
 
         <div id="listaFranjasDisponibles" class="slots-grid">
             </div>
