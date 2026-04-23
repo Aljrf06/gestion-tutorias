@@ -20,3 +20,6 @@ Puedes ver la gestión de tareas y seguimiento del proyecto en Jira:
 - Jerson Steven Mantilla Ramirez
 - Alejandra Rodriguez Forero
 - Santiago Galvis Saavedra
+
+# Diapositivas
+[Canva]https://canva.link/tbgy3wkizxth9i4
