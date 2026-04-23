@@ -1,28 +1,21 @@
 # 📚 Sistema Gestión Tutorías Académicas
+Plataforma web que centraliza y automatiza la gestión de asesorías académicas...
 
-Plataforma web que centraliza y automatiza la gestión de asesorías académicas entre tutores y estudiantes, 
-eliminando la coordinación manual y desorganizada que genera conflictos de horario, doble reserva y falta de seguimiento.
-
-# #🛠️ Tecnologías Utilizadas
-
-- CSS,HTML
+## 🛠️ Tecnologías Utilizadas
+- CSS, HTML
 - Spring Boot
 - MySQL
 
-# 📋 Gestión del Proyecto
-
-Puedes ver la gestión de tareas y seguimiento del proyecto en Jira:
-
+## 📋 Gestión del Proyecto
 [Jira del proyecto](https://mantillajerson2.atlassian.net)
 
-# 📉 Base de datos 
+## 📉 Base de datos
 <img width="1064" height="731" alt="image" src="https://github.com/user-attachments/assets/f9f37606-de92-415e-95dc-c230d6dab676" />
 
-# 👥 Autores
-
+## 👥 Autores
 - Jerson Steven Mantilla Ramirez
 - Alejandra Rodriguez Forero
 - Santiago Galvis Saavedra
 
-# Diapositivas
-[Canva]https://canva.link/tbgy3wkizxth9i4
+## 📊 Diapositivas
+[Canva](https://canva.link/tbgy3wkizxth9i4)
