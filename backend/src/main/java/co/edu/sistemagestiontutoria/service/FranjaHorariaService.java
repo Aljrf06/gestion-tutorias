@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -69,5 +70,9 @@ public class FranjaHorariaService {
             throw new ApiExcepcion("Franja horaria no encontrada", 404);
         reservaRepository.deleteByFranjaHorariaId(id);
         franjaHorariaRepository.deleteById(id);
+    }
+
+    public List<FranjaHoraria> listarPorFecha(LocalDate fecha) {
+        return franjaHorariaRepository.findByFecha(fecha);
     }
 }

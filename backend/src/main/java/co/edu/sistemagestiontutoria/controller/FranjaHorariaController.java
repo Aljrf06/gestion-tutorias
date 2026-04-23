@@ -3,12 +3,14 @@ package co.edu.sistemagestiontutoria.controller;
 
 import co.edu.sistemagestiontutoria.model.FranjaHoraria;
 import co.edu.sistemagestiontutoria.model.Reserva;
+import co.edu.sistemagestiontutoria.repository.FranjaHorariaRepository;
 import co.edu.sistemagestiontutoria.service.FranjaHorariaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,6 +19,8 @@ import java.util.List;
 public class FranjaHorariaController {
     @Autowired
     FranjaHorariaService franjaHorariaService;
+    @Autowired
+    FranjaHorariaRepository  franjaHorariaRepository;
 
     @PostMapping("/crearFranja")
     public ResponseEntity<FranjaHoraria> crearFranja(@RequestBody FranjaHoraria franja){
@@ -55,6 +59,11 @@ public class FranjaHorariaController {
     public ResponseEntity<Void> eliminarFranja(@PathVariable int id) {
         franjaHorariaService.eliminarFranja(id);
         return ResponseEntity.noContent().build();
+    }
+    //listar por fecha
+    @GetMapping("/fecha/{fecha}")
+    public ResponseEntity<List<FranjaHoraria>> listarPorFecha(@PathVariable LocalDate fecha) {
+        return ResponseEntity.ok(franjaHorariaService.listarPorFecha(fecha));
     }
 
 

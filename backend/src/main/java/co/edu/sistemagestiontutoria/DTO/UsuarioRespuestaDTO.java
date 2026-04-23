@@ -13,4 +13,5 @@ public class UsuarioRespuestaDTO {
     private String apellido;
     private String email;
     private TipoUsuario tipo;
+    private String token;
 }
